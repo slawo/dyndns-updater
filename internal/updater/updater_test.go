@@ -15,7 +15,7 @@ func TestRotationPublishAndRestartState(t *testing.T) {
 	calls := 0
 	fail := true
 	var paths []string
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		paths = append(paths, r.URL.Path)
 		if r.URL.Path == "/update" {
 			calls++
@@ -76,7 +76,7 @@ func TestConfig(t *testing.T) {
 	t.Setenv("DYNDNS_LOOKUP_URLS", "https://api.ipify.org,https://ifconfig.me/ip")
 	c, err := loadConfig()
 	if err != nil || len(c.urls) != 2 {
-		t.Fatal(c, err)
+		t.Fatal("unexpected configuration or URL count", err)
 	}
 	t.Setenv("DYNDNS_LOOKUP_URLS", "")
 	file := filepath.Join(t.TempDir(), "urls")
@@ -86,7 +86,7 @@ func TestConfig(t *testing.T) {
 	t.Setenv("DYNDNS_LOOKUP_FILE", file)
 	c, err = loadConfig()
 	if err != nil || len(c.urls) != 1 {
-		t.Fatal(c, err)
+		t.Fatal("unexpected configuration or URL count", err)
 	}
 	t.Setenv("DYNDNS_INTERVAL", "0s")
 	if _, err := loadConfig(); err == nil {

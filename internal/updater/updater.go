@@ -22,6 +22,8 @@ type config struct {
 	urls                                  []string
 	update, user, password, state, listen string
 	interval                              time.Duration
+	method, body, success                 string
+	parameters, headers                   map[string]string
 }
 
 func validURL(raw string) bool {
@@ -30,8 +32,23 @@ func validURL(raw string) bool {
 }
 func loadConfig() (config, error) {
 	c := config{update: os.Getenv("DYNDNS_UPDATE_URL"), user: os.Getenv("DYNDNS_USERNAME"), password: os.Getenv("DYNDNS_PASSWORD"), state: os.Getenv("DYNDNS_STATE_FILE"), listen: os.Getenv("DYNDNS_LISTEN"), interval: 5 * time.Minute}
-	if !strings.Contains(c.update, "{ip}") || !validURL(strings.ReplaceAll(c.update, "{ip}", "1.1.1.1")) {
-		return c, errors.New("DYNDNS_UPDATE_URL must be HTTPS, without embedded credentials, and contain {ip}")
+	c.method = os.Getenv("DYNDNS_UPDATE_METHOD")
+	if c.method == "" {
+		c.method = http.MethodGet
+	}
+	c.body = os.Getenv("DYNDNS_UPDATE_BODY")
+	c.success = os.Getenv("DYNDNS_SUCCESS_REGEX")
+	var err error
+	c.parameters, err = decodeValues(os.Getenv("DYNDNS_PARAMETERS"))
+	if err != nil {
+		return c, errors.New("DYNDNS_PARAMETERS must be a JSON object of strings")
+	}
+	c.headers, err = decodeValues(os.Getenv("DYNDNS_UPDATE_HEADERS"))
+	if err != nil {
+		return c, errors.New("DYNDNS_UPDATE_HEADERS must be a JSON object of strings")
+	}
+	if err := c.validateUpdate(); err != nil {
+		return c, err
 	}
 	if (c.user == "") != (c.password == "") {
 		return c, errors.New("set both DYNDNS_USERNAME and DYNDNS_PASSWORD")
@@ -83,11 +100,17 @@ func publicIPv4(raw string) (string, error) {
 	return ip.String(), nil
 }
 func fetch(ctx context.Context, client *http.Client, raw, user, password string) (string, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, raw, nil)
+	return request(ctx, client, http.MethodGet, raw, "", nil, user, password)
+}
+func request(ctx context.Context, client *http.Client, method, raw, body string, headers map[string]string, user, password string) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, method, raw, strings.NewReader(body))
 	if err != nil {
 		return "", errors.New("invalid request")
 	}
 	req.Header.Set("User-Agent", "dyndns-updater/1.0")
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
 	if user != "" {
 		req.SetBasicAuth(user, password)
 	}
@@ -100,7 +123,7 @@ func fetch(ctx context.Context, client *http.Client, raw, user, password string)
 			log.Print("response close failed")
 		}
 	}()
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return "", fmt.Errorf("HTTP status %d", resp.StatusCode)
 	}
 	b, err := io.ReadAll(io.LimitReader(resp.Body, 4097))
@@ -153,13 +176,8 @@ func (w *worker) tick(ctx context.Context) error {
 		log.Print("IPv4 unchanged")
 		return nil
 	}
-	body, err := fetch(ctx, w.client, strings.ReplaceAll(w.config.update, "{ip}", ip), w.config.user, w.config.password)
-	if err != nil {
+	if err := w.config.publish(ctx, w.client, ip); err != nil {
 		return fmt.Errorf("update: %w", err)
-	}
-	fields := strings.Fields(body)
-	if len(fields) != 2 || (fields[0] != "good" && fields[0] != "nochg") || fields[1] != ip {
-		return errors.New("update did not confirm the requested IPv4")
 	}
 	if err := saveState(w.config.state, ip); err != nil {
 		return err

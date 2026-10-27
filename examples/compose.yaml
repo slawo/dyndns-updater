@@ -6,8 +6,13 @@ services:
     restart: unless-stopped
     environment:
       DYNDNS_UPDATE_URL: ${DYNDNS_UPDATE_URL:?Set DYNDNS_UPDATE_URL}
-      DYNDNS_USERNAME: ${DYNDNS_USERNAME:?Set the provider dynamic DNS username}
-      DYNDNS_PASSWORD: ${DYNDNS_PASSWORD:?Set the provider dynamic DNS password}
+      DYNDNS_USERNAME: ${DYNDNS_USERNAME:-}
+      DYNDNS_PASSWORD: ${DYNDNS_PASSWORD:-}
+      DYNDNS_PARAMETERS: ${DYNDNS_PARAMETERS:-}
+      DYNDNS_UPDATE_METHOD: ${DYNDNS_UPDATE_METHOD:-GET}
+      DYNDNS_UPDATE_HEADERS: ${DYNDNS_UPDATE_HEADERS:-}
+      DYNDNS_UPDATE_BODY: ${DYNDNS_UPDATE_BODY:-}
+      DYNDNS_SUCCESS_REGEX: ${DYNDNS_SUCCESS_REGEX:-}
       DYNDNS_INTERVAL: ${DYNDNS_INTERVAL:-5m}
     volumes:
       - state:/var/lib/dyndns-updater
