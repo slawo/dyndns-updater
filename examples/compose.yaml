@@ -1,0 +1,16 @@
+name: dyndns-updater
+
+services:
+  dyndns-updater:
+    image: ${DYNDNS_IMAGE:-ghcr.io/slawo/dyndns-updater:latest}
+    restart: unless-stopped
+    environment:
+      DYNDNS_UPDATE_URL: ${DYNDNS_UPDATE_URL:?Set DYNDNS_UPDATE_URL}
+      DYNDNS_USERNAME: ${DYNDNS_USERNAME:?Set the provider dynamic DNS username}
+      DYNDNS_PASSWORD: ${DYNDNS_PASSWORD:?Set the provider dynamic DNS password}
+      DYNDNS_INTERVAL: ${DYNDNS_INTERVAL:-5m}
+    volumes:
+      - state:/var/lib/dyndns-updater
+
+volumes:
+  state:

@@ -58,6 +58,27 @@ sudo journalctl -u dyndns-updater -f
 
 The unit creates a persistent state directory and runs under a dedicated dynamic user. It has not been exercised on a Linux deployment in this session.
 
+## Docker Compose
+
+Run [examples/compose.yaml](examples/compose.yaml) on an always-on Docker host on your brother's network. Export `DYNDNS_UPDATE_URL`, `DYNDNS_USERNAME`, and `DYNDNS_PASSWORD` through your shell or secret manager. The update URL must contain the literal `{ip}` placeholder. Compose refuses to start if a required variable is missing or empty.
+
+From this checkout:
+
+```sh
+docker compose -f examples/compose.yaml up -d
+docker compose -f examples/compose.yaml logs -f
+```
+
+Alternatively, keep the three environment assignments in a private file outside the checkout and load it with Compose's `--env-file` option:
+
+```sh
+docker compose --env-file "$HOME/.config/dyndns-updater.env" -f examples/compose.yaml up -d
+```
+
+The example uses the published GHCR `latest` image and its bundled lookup URLs. Set `DYNDNS_IMAGE` to a release tag or digest to pin a version, and `DYNDNS_INTERVAL` to change the default five-minute interval. An image must have been published before it can be pulled.
+
+The named `state` volume persists the last successfully published IP across container recreation. Keep the Compose project name unchanged to reuse that volume. `restart: unless-stopped` restarts the service after failures and Docker restarts unless you explicitly stop it; Docker must start at boot. No inbound ports are required. Stop with `docker compose -f examples/compose.yaml down`; do not add `--volumes` unless you intend to delete the saved state.
+
 ## Releases and containers
 
 GitHub Actions uses release-please and GoReleaser to publish binary archives to GitHub Releases and multi-platform images to GHCR and Docker Hub.
