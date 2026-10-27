@@ -14,7 +14,7 @@ Set these environment variables in your service manager. Keep credentials and pr
 | `DYNDNS_USERNAME` / `DYNDNS_PASSWORD` | provider dynamic DNS credentials, sent using HTTP Basic authentication. Both or neither must be set. |
 | `DYNDNS_STATE_FILE` | Required absolute path outside this checkout; parent directory must exist and be writable. Persist this file across restarts. |
 | `DYNDNS_LOOKUP_URLS` | Optional comma-separated or whitespace-separated HTTPS URLs; takes precedence over the file. |
-| `DYNDNS_LOOKUP_FILE` | One URL per line, blank lines and `#` comments allowed. Defaults to `urls.txt` in the working directory. |
+| `DYNDNS_LOOKUP_FILE` | One URL per line, blank lines and `#` comments allowed. Defaults to `examples/urls.txt` in the working directory. |
 | `DYNDNS_INTERVAL` | Go duration, default `5m`, minimum `1s`. Keep a sensible interval to respect free services. |
 | `DYNDNS_LISTEN` | Health/Prometheus listener, default `:8080`. Bind to loopback or firewall it if needed. |
 
@@ -44,11 +44,11 @@ go test ./...
 go vet ./...
 ```
 
-No database, scheduler, framework, dashboard, or DNS API dependency. `urls.txt` contains twelve distinct sites. Lookup list and rotation position load/reset at startup. Delete state (while stopped) when changing the target hostname, to force publication to the new target.
+No database, scheduler, framework, dashboard, or DNS API dependency. `examples/urls.txt` contains twelve distinct sites, live-tested over IPv4 on 27 October 2026. Lookup list and rotation position load/reset at startup. Delete state (while stopped) when changing the target hostname, to force publication to the new target.
 
 ## Linux systemd deployment
 
-Build the binary for the target machine and put it alongside `urls.txt` in `/opt/dyndns-updater/`. Install `deploy/dyndns-updater.service` in `/etc/systemd/system/`. Create `/etc/dyndns-updater.env` outside the repo, readable only by root, containing the required update URL and credentials as environment assignments. The unit supplies the state and lookup paths; interval/listener overrides can also go in that external file. Then run:
+Build the binary for the target machine and put it in `/opt/dyndns-updater/`. Copy `examples/urls.txt` there as `urls.txt`. Install `deploy/dyndns-updater.service` in `/etc/systemd/system/`. Create `/etc/dyndns-updater.env` outside the repo, readable only by root, containing the required update URL and credentials as environment assignments. The unit supplies the state and lookup paths; interval/listener overrides can also go in that external file. Then run:
 
 ```sh
 sudo systemctl daemon-reload

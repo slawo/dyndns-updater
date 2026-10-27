@@ -1,6 +1,7 @@
 **
 !Dockerfile
-!urls.txt
+!examples/
+!examples/urls.txt
 !.bin/
 !.bin/**
 !deploy/

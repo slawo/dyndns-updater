@@ -9,4 +9,4 @@ https://ipecho.net/plain
 https://ipv4.myexternalip.com/raw
 https://api-ipv4.ip.sb/ip
 https://v4.ipconfig.is
-https://ipaddress.ai
+https://ipaddress.ai/ip

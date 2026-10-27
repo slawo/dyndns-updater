@@ -53,7 +53,7 @@ func loadConfig() (config, error) {
 	if raw == "" {
 		p := os.Getenv("DYNDNS_LOOKUP_FILE")
 		if p == "" {
-			p = "urls.txt"
+			p = "examples/urls.txt"
 		}
 		b, err := os.ReadFile(p)
 		if err != nil {

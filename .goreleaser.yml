@@ -27,7 +27,8 @@ archives:
     files:
       - README.md
       - CHANGELOG.md
-      - urls.txt
+      - src: examples/urls.txt
+        dst: examples/urls.txt
       - deploy/dyndns-updater.service
 checksum:
   name_template: checksums.txt
