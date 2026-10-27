@@ -1,32 +1,72 @@
 {
-  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "release-type": "go",
-  "initial-version": "0.1.0",
-  "include-component-in-tag": false,
+  "initial-version": "0.0.1",
   "pull-request-title-pattern": "chore: release v${version}",
   "changelog-sections": [
     {
       "type": "feat",
-      "section": "Features"
+      "section": "✨ New Features",
+      "hidden": false
+    },
+    {
+      "type": "feature",
+      "section": "✨ New Features"
     },
     {
       "type": "fix",
-      "section": "Bug fixes"
+      "section": "🐛 Bug Fixes"
     },
     {
-      "type": "ci",
-      "section": "CI"
+      "type": "perf",
+      "section": "🚀 Performance Improvements"
     },
     {
-      "type": "docs",
-      "section": "Documentation"
+      "type": "refactor",
+      "section": "🔄 Code Refactoring",
+      "hidden": false
+    },
+    {
+      "type": "style",
+      "section": "🎨 Styling",
+      "hidden": false
     },
     {
       "type": "deps",
-      "section": "Dependencies"
+      "section": "📦 Dependencies"
+    },
+    {
+      "type": "test",
+      "hidden": true,
+      "section": "🧪 Tests"
+    },
+    {
+      "type": "docs",
+      "section": "📚 Documentation",
+      "hidden": false
+    },
+    {
+      "type": "revert",
+      "section": "🔙 Reverts"
+    },
+    {
+      "type": "chore",
+      "section": "🧹 Chores",
+      "hidden": true
+    },
+    {
+      "type": "ci",
+      "section": "🚦 CI",
+      "hidden": false
+    },
+    {
+      "type": "build",
+      "section": "🛠️ Build",
+      "hidden": true
     }
   ],
   "packages": {
     ".": {}
-  }
+  },
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "include-component-in-tag": false
 }
