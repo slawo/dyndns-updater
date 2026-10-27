@@ -204,3 +204,10 @@ func TestTemplateEnvironmentConfiguration(t *testing.T) {
 		t.Fatal("accepted invalid headers object")
 	}
 }
+
+func TestMissingUpdateURLIsNamed(t *testing.T) {
+	err := (config{}).validateUpdate()
+	if err == nil || !strings.Contains(err.Error(), "DYNDNS_UPDATE_URL") {
+		t.Fatal("missing URL error must name its configuration key")
+	}
+}

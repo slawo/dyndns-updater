@@ -161,8 +161,11 @@ func (c config) successPattern(ip string) (*regexp.Regexp, error) {
 }
 
 func (c config) validateUpdate() error {
+	if c.update == "" {
+		return errors.New("DYNDNS_UPDATE_URL is required")
+	}
 	if !strings.Contains(c.update+c.body, "{ip}") && !strings.Contains(c.update+c.body, "{ipv4}") {
-		return errors.New("update URL or body must contain {ip} or {ipv4}")
+		return errors.New("DYNDNS_UPDATE_URL or DYNDNS_UPDATE_BODY must contain {ip} or {ipv4}")
 	}
 	if c.method == "" {
 		c.method = http.MethodGet
