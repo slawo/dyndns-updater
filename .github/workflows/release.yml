@@ -5,13 +5,13 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-concurrency:
-  group: release-main
-  cancel-in-progress: false
 jobs:
   call-test:
     uses: ./.github/workflows/test.yml
   release-please:
+    concurrency:
+      group: release-please-main
+      cancel-in-progress: false
     needs: call-test
     permissions:
       contents: write
@@ -20,6 +20,9 @@ jobs:
     uses: ./.github/workflows/release-please.yml
     secrets: inherit
   release-artifacts:
+    concurrency:
+      group: publish-main
+      cancel-in-progress: false
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
     permissions:

@@ -1,0 +1,28 @@
+name: Cached Go
+description: Install the pinned Go toolchain and restore workload-specific compilation caches.
+inputs:
+  workload:
+    description: Cache namespace for this workload.
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      id: go
+      with:
+        go-version-file: go.mod
+        cache: false # Explicit caches below avoid parallel jobs competing for the same key.
+    - id: paths
+      shell: bash
+      run: |
+        echo "build=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
+        echo "modules=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ${{ steps.paths.outputs.build }}
+          ${{ steps.paths.outputs.modules }}
+          ${{ runner.tool_cache }}/goreleaser-checksum
+        key: go-${{ runner.os }}-${{ runner.arch }}-${{ steps.go.outputs.go-version }}-${{ inputs.workload }}-${{ hashFiles('**/*.go', 'go.mod', 'go.sum', '.goreleaser.yml', '.tool-versions', '.github/actions/setup-go/action.yml', '.github/workflows/*.yml') }}
+        restore-keys: |
+          go-${{ runner.os }}-${{ runner.arch }}-${{ steps.go.outputs.go-version }}-${{ inputs.workload }}-

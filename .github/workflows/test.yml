@@ -1,32 +1,57 @@
 name: test
 on:
-  push:
-    branches-ignore: [main]
   pull_request:
   workflow_call:
 permissions:
   contents: read
 jobs:
-  go:
+  checks:
+    name: ${{ matrix.check }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
+    concurrency:
+      group: check-${{ github.head_ref || github.ref }}-${{ matrix.check }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [tests, vet, staticcheck]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      - uses: ./.github/actions/setup-go
         with:
-          go-version-file: go.mod
-          cache: false
-      - run: go build -o /tmp/dyndns-updater .
-      - run: go vet ./...
-      - run: go test -race -cover ./...
-      - run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.2 ./...
-      - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+          workload: ${{ matrix.check }}
+      - name: Race tests and coverage
+        if: matrix.check == 'tests'
+        run: go test -race -cover ./...
+      - name: Vet
+        if: matrix.check == 'vet'
+        run: go vet ./...
+      - name: Staticcheck
+        if: matrix.check == 'staticcheck'
+        run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.2 ./...
+  snapshot:
+    name: Release and container checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: snapshot-${{ github.head_ref || github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-go
+        with:
+          workload: release-build
+      - name: Validate release configuration
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           version-file: .tool-versions
           args: check
-      - name: Build release snapshot
+      - name: Build all release targets
         uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           version-file: .tool-versions
@@ -35,8 +60,17 @@ jobs:
         run: |
           version=$(python3 -c 'import json; print(json.load(open("dist/metadata.json"))["version"])')
           bash .github/scripts/prepare-images.sh "$version"
-      - name: Build local image
-        run: docker build --platform linux/amd64 -t dyndns-updater:ci .
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build cached local image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: dyndns-updater:ci
+          provenance: false
+          cache-from: type=gha,scope=image-ci-amd64
+          cache-to: type=gha,scope=image-ci-amd64,mode=max
       - name: Check image entrypoint
         run: |
           status=0
