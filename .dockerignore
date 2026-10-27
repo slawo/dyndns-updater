@@ -1,0 +1,8 @@
+**
+!Dockerfile
+!urls.txt
+!.bin/
+!.bin/**
+!deploy/
+!deploy/state/
+!deploy/state/.keep

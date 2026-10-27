@@ -22,7 +22,7 @@ provider's documented URL is `https://provider.invalid/nic/update?system=dyndns&
 
 ## Build and run
 
-Requires Go 1.23 or newer:
+Requires the Go version declared in `go.mod`:
 
 ```sh
 go build -o /tmp/dyndns-updater .
@@ -57,3 +57,7 @@ sudo journalctl -u dyndns-updater -f
 ```
 
 The unit creates a persistent state directory and runs under a dedicated dynamic user. It has not been exercised on a Linux deployment in this session.
+
+## Releases and containers
+
+GitHub Actions uses release-please and GoReleaser to publish binary archives to GitHub Releases and multi-platform images to GHCR and Docker Hub.

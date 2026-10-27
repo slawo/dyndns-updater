@@ -1,0 +1,35 @@
+name: release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+jobs:
+  call-test:
+    uses: ./.github/workflows/test.yml
+  release-please:
+    needs: call-test
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    uses: ./.github/workflows/release-please.yml
+    secrets: inherit
+  release-artifacts:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    uses: ./.github/workflows/release-artifacts.yml
+    with:
+      release-version: ${{ needs.release-please.outputs.tag_name }}
+      release-sha: ${{ needs.release-please.outputs.sha }}
+    secrets: inherit

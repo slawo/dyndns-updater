@@ -2,3 +2,5 @@
 *.test
 .env
 .env.*
+/dist/
+/.bin/
