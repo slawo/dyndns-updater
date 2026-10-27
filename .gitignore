@@ -1,0 +1,4 @@
+/dyndns-updater
+*.test
+.env
+.env.*

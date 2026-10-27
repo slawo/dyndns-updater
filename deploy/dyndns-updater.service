@@ -1,0 +1,22 @@
+[Unit]
+Description=dyndns-updater DynDNS updater
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+DynamicUser=yes
+WorkingDirectory=/opt/dyndns-updater
+ExecStart=/opt/dyndns-updater/dyndns-updater
+EnvironmentFile=/etc/dyndns-updater.env
+Environment=DYNDNS_STATE_FILE=/var/lib/dyndns-updater/last-ip
+Environment=DYNDNS_LOOKUP_FILE=/opt/dyndns-updater/urls.txt
+StateDirectory=dyndns-updater
+Restart=on-failure
+RestartSec=30
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+https://api.ipify.org
+https://ipv4.icanhazip.com
+https://checkip.amazonaws.com
+https://ifconfig.me/ip
+https://ifconfig.co/ip
+https://ifconfig.io/ip
+https://4.ident.me
+https://ipecho.net/plain
+https://ipv4.myexternalip.com/raw
+https://api-ipv4.ip.sb/ip
+https://v4.ipconfig.is
+https://ipaddress.ai
